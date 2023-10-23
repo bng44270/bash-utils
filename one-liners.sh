@@ -1,3 +1,8 @@
+# Delete docker image and associated containers
+rmimg() {
+	[[ -z "$1" ]] && echo "usage: rmimg <docker-image-id>" || (docker ps -a | awk '/^[^ \t]+[ \t]+'"$1"'/ { print $1 }' | while read line; do docker rm $line; done; docker rmi $1)
+}
+
 # Take screenshot of a website and a PDF file
 urlscreenshot() {
 	[[ -z "$@" ]] && echo "usage: urlscreenshot <url>" || curl -X POST -d "delay=n&screenshot=$@" https://freetsa.org/screenshot.php > $(sed 's/^http[s]*:\/\///g' <<< "$@").pdf
