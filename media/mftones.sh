@@ -17,9 +17,12 @@
 #    Generate custom tones 
 #        mftones.sh -f 2600,2400
 #
+# If you have issues with tones not playing correctly or simultaneously,
+# you can increase the value of DURATION variable below.
+#
 #################################################
 
-DURATION="1"
+DURATION="0.5"
 
 mftones() {
 	TONEPIDS=""
