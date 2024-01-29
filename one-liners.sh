@@ -1,6 +1,6 @@
 # Delete docker image and associated containers
 rmimg() {
-	[[ -z "$1" ]] && echo "usage: rmimg <docker-image-id>" || (docker ps -a | awk '/^[^ \t]+[ \t]+'"$1"'/ { print $1 }' | while read line; do docker rm $line; done; docker rmi $1)
+	[[ -z "$1" ]] && echo "usage: rmimg <docker-image-id>" || (docker ps -a | awk '/^.*[ \t]+'"$1"'/ { print $1 }' | xargs docker container rm && docker image rm $1)
 }
 
 # Take screenshot of a website and a PDF file
