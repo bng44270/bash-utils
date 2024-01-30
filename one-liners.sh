@@ -1,6 +1,6 @@
 # Download one-liners.sh to the specified file
 getol() {
-	[[ ! -f $1 ]] && echo "usage:  getol <target-file>" || curl https://raw.githubusercontent.com/bng44270/bash-utils/main/one-liners.sh > $1
+	[[ ! -f $1 ]] && echo "usage:  getol <target-file>" || curl -H 'Cache-Control: no-cache, no-store' https://raw.githubusercontent.com/bng44270/bash-utils/main/one-liners.sh > $1
 }
 
 # Delete docker image and associated containers (requires sudo access)
