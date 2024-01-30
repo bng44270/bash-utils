@@ -3,9 +3,9 @@ getol() {
 	[[ ! -f $1 ]] && echo "usage:  getol <target-file>" || curl https://raw.githubusercontent.com/bng44270/bash-utils/main/one-liners.sh > $1
 }
 
-# Delete docker image and associated containers
+# Delete docker image and associated containers (requires sudo access)
 rmimg() {
-	[[ -z "$1" ]] && echo "usage: rmimg <docker-image-id>" || ((docker ps -a | awk '/^.*[ \t]+'"$1"'/ { print $1 }' | xargs docker container rm) && docker image rm $1)
+	[[ -z "$1" ]] && echo "usage: rmimg <docker-image-id>" || ((sudo docker ps -a | awk '/^.*[ \t]+'"$1"'/ { print $1 }' | xargs sudo docker container rm) && sudo docker image rm $1)
 }
 
 # Take screenshot of a website and a PDF file
