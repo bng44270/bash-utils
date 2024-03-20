@@ -1,6 +1,7 @@
 #!/bin/bash
 
 #######################################
+#
 # pdfman.sh
 #       Creates printable PDF of man page
 #
@@ -12,6 +13,7 @@
 #               Creates PDF of git man page and every mentioned man page with the git man page
 #
 # Requires text2pdf (from pdflib or pdflib-lite)
+#
 #######################################
 
 if [ -z "$(which text2pdf)" ]; then
