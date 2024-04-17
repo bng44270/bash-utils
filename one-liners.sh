@@ -1,5 +1,5 @@
 # Recursively get the size of the current directory
-alias dirsize="ls -alFR | awk 'BEGIN { tot=0 } /^-/ { tot += \$5 } END { print tot }' | rev | sed 's/\([0-9]\{3\}\)/\1,/g;s/,$//g' | rev"-
+alias dirsize="ls -alFR | awk 'BEGIN { tot=0 } /^-/ { tot += \$5 } END { printf(\"%s\",tot); }' | rev | sed 's/\([0-9]\{3\}\)/\1,/g;s/,$//g' | rev ; echo ' bytes'"
 
 # Download one-liners.sh to the specified file
 getol() {
