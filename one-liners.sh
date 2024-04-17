@@ -1,3 +1,6 @@
+# Recursively get the size of the current directory
+alias dirsize="ls -alFR | awk 'BEGIN { tot=0 } /^-/ { tot += \$5 } END { print tot }' | rev | sed 's/\([0-9]\{3\}\)/\1,/g;s/,$//g' | rev"-
+
 # Download one-liners.sh to the specified file
 getol() {
 	[[ ! -f $1 ]] && echo "usage:  getol <target-file>" || curl -H 'Cache-Control: no-cache, no-store' https://raw.githubusercontent.com/bng44270/bash-utils/main/one-liners.sh > $1
