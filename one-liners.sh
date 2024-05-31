@@ -9,7 +9,9 @@ md2html() {
 }
 
 # Recursively get the size of the current directory
-alias dirsize="ls -alFR | awk 'BEGIN { tot=0 } /^-/ { tot += \$5 } END { printf(\"%s\",tot); }' | rev | sed 's/\([0-9]\{3\}\)/\1,/g;s/,$//g' | rev ; echo ' bytes'"
+dirsize() {
+	ls -alFR | awk 'BEGIN { tot=0 } /^-/ { tot += \$5 } END { printf(\"%s\",tot); }' | rev | sed 's/\([0-9]\{3\}\)/\1,/g;s/,$//g' | rev ; echo ' bytes'
+}
 
 # Download one-liners.sh to the specified file
 getol() {
@@ -363,11 +365,18 @@ linkfile() {
 }
 
 # Converts piped 1-byte between hexidecimal and decimal
-alias hextodec="sed 's/^\([0-9][0-9]\).*$/\1/g;s/\([0-9]\)/\1 /g;s/[Aa]/10 /g;s/[Bb]/11 /g;s/[Cc]/12 /g;s/[Dd]/13 /g;s/[Ee]/14 /g;s/[Ff]/15 /g' | awk '{ print (\$1*16)+\$2 }'"
-alias dectohex="awk '{ if (\$1 <256) { b1=\$1/16;b2=\$1%16;printf(\"%x%x\",b1,b2); } }'"
+hextodec() {
+	[[ -z "$1" ]] && echo "usage: hextodec <1-byte-hex>" || sed 's/^\([0-9][0-9]\).*$/\1/g;s/\([0-9]\)/\1 /g;s/[Aa]/10 /g;s/[Bb]/11 /g;s/[Cc]/12 /g;s/[Dd]/13 /g;s/[Ee]/14 /g;s/[Ff]/15 /g' <<< "$1" | awk '{ print ($1*16)+$2 }'
+}
+
+dectohex() {
+	[[ -z "$1" ]] && echo "usage: dectohex <1-byte-decimal>" || awk '{ if ($1 <256) { b1=$1/16;b2=$1%16;printf("%x%x",b1,b2); } }' <<< "$1"
+}
 
 # Makes piped JSON slightly pretty
-alias jsonpretty="tr -d '\n' | sed 's/\([{}]\)/\n\1\n/g;s/\[/\[\n/g;s/\][^,]/\n\]\n/g;s/\(\],\)/\n\1\n/g;s/,/,\n/g' | grep -v '^$'"
+jsonpretty() {
+	tr -d '\n' | sed 's/\([{}]\)/\n\1\n/g;s/\[/\[\n/g;s/\][^,]/\n\]\n/g;s/\(\],\)/\n\1\n/g;s/,/,\n/g' | grep -v '^$'
+}
 
 # Return lines $1 through $2 of piped data
 getlines () {
@@ -390,7 +399,9 @@ firstchar() {
 }
 
 # Get verbose output of the value of /proc/loadavg
-alias getload="cat /proc/loadavg | sed 's/\([0-9]*\.[0-9]*\) \([0-9]*\.[0-9]*\) \([0-9]*\.[0-9]*\) \([0-9]*\)\/\([0-9]*\) \([0-9]*\).*$/1-minute: \1\n5-minute: \2\n15-minute: \3\nCurrent KSE: \4\nTotal KSE: \5\nLast PID: \6/g'"
+getload() {
+	cat /proc/loadavg | sed 's/\([0-9]*\.[0-9]*\) \([0-9]*\.[0-9]*\) \([0-9]*\.[0-9]*\) \([0-9]*\)\/\([0-9]*\) \([0-9]*\).*$/1-minute: \1\n5-minute: \2\n15-minute: \3\nCurrent KSE: \4\nTotal KSE: \5\nLast PID: \6/g'
+}
 
 # Get UNIX timestamp of file $@
 getmodtimestamp() {
@@ -407,4 +418,6 @@ procfd() {
 }
 
 # List files locally on filesystem the current Git repository folder
-alias repofiles='[[ -d ".git" ]] && find . -type f | grep -v "^./.git" | sort || echo "$(pwd) is not a repository"'
+repofiles() {
+	[[ -d ".git" ]] && find . -type f | grep -v "^./.git" | sort || echo "$(pwd) is not a repository"
+}
