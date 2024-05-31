@@ -1,3 +1,8 @@
+# md2html (does bold, italic, h1, h2, h3, strikethrough, highlight, and horizontal line)
+md2html() {
+	sed 's/  $/<br\/>/g;s/^###[ \t]*\(.*\)$/<h3>\1<\/h3>/g;s/^##[ \t]*\(.*\)$/<h2>\1<\/h2>/g;s/^#[ \t]*\(.*\)$/<h1>\1<\/h1>/g;s/[*]\{2\}\([^*]\+\)[*]\{2\}/<b>\1<\/b>/g;s/[*]\([^*]\+\)[*]/<i>\1<\/i>/g;s/[~]\{2\}\([^~]\+\)[~]\{2\}/<s>\1<\/s>/g;s/[=]\{2\}\([^=]\+\)[=]\{2\}/<mark>\1<\/mark>/g;s/---/<hr\/>/g'
+}
+
 # Recursively get the size of the current directory
 alias dirsize="ls -alFR | awk 'BEGIN { tot=0 } /^-/ { tot += \$5 } END { printf(\"%s\",tot); }' | rev | sed 's/\([0-9]\{3\}\)/\1,/g;s/,$//g' | rev ; echo ' bytes'"
 
