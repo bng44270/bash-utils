@@ -3,9 +3,9 @@ jdprint() {
 	[[ -z "$1" ]] && echo "usage: jdprint <host>" || cat - > /dev/tcp/$1/9100
 }
  
-# Markdown-to-HTML (does newlines, bold, italic, h1, h2, h3, strikethrough, highlight, and horizontal line)
+# Markdown-to-HTML (does newlines, H1, H2, H3, bold, italic, strikethrough, subscript, superscript, single-line code, highlight, and horizontal line)
 md2html() {
-	sed 's/  $/<br\/>/g;s/^###[ \t]*\(.*\)$/<h3>\1<\/h3>/g;s/^##[ \t]*\(.*\)$/<h2>\1<\/h2>/g;s/^#[ \t]*\(.*\)$/<h1>\1<\/h1>/g;s/[*]\{2\}\([^*]\+\)[*]\{2\}/<b>\1<\/b>/g;s/[*]\([^*]\+\)[*]/<i>\1<\/i>/g;s/[~]\{2\}\([^~]\+\)[~]\{2\}/<s>\1<\/s>/g;s/[=]\{2\}\([^=]\+\)[=]\{2\}/<mark>\1<\/mark>/g;s/---/<hr\/>/g'
+	sed 's/[ ]\{2\}$/<br\/>/g;s/^###[ \t]*\(.*\)$/<h3>\1<\/h3>/g;s/^##[ \t]*\(.*\)$/<h2>\1<\/h2>/g;s/^#[ \t]*\(.*\)$/<h1>\1<\/h1>/g;s/[*]\{2\}\([^*]\+\)[*]\{2\}/<b>\1<\/b>/g;s/[*]\([^*]\+\)[*]/<i>\1<\/i>/g;s/[~]\{2\}\([^~]\+\)[~]\{2\}/<s>\1<\/s>/g;s/[~]\([^~]\+\)[~]/<sub>\1<\/sub>/g;s/[\^]\([^\^]\+\)[\^]/<sup>\1<\/sup>/g;s/\x60\([^\x60]\+\)\x60/<code>\1<\/code>/g;s/[=]\{2\}\([^=]\+\)[=]\{2\}/<mark>\1<\/mark>/g;s/---/<hr\/>/g'
 }
 
 # Recursively get the size of the current directory
