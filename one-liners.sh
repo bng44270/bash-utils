@@ -1,4 +1,9 @@
-# md2html (does newlines, bold, italic, h1, h2, h3, strikethrough, highlight, and horizontal line)
+# Send stdin to JetDirect port (9100) on a specified host
+jdprint() {
+	[[ -z "$1" ]] && echo "usage: jdprint <host>" || cat - > /dev/tcp/$1/9100
+}
+ 
+# Markdown-to-HTML (does newlines, bold, italic, h1, h2, h3, strikethrough, highlight, and horizontal line)
 md2html() {
 	sed 's/  $/<br\/>/g;s/^###[ \t]*\(.*\)$/<h3>\1<\/h3>/g;s/^##[ \t]*\(.*\)$/<h2>\1<\/h2>/g;s/^#[ \t]*\(.*\)$/<h1>\1<\/h1>/g;s/[*]\{2\}\([^*]\+\)[*]\{2\}/<b>\1<\/b>/g;s/[*]\([^*]\+\)[*]/<i>\1<\/i>/g;s/[~]\{2\}\([^~]\+\)[~]\{2\}/<s>\1<\/s>/g;s/[=]\{2\}\([^=]\+\)[=]\{2\}/<mark>\1<\/mark>/g;s/---/<hr\/>/g'
 }
