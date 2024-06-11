@@ -17,18 +17,18 @@
 #################################
 
 getargs() {
-        echo "$@" | sed 's/[ \t]*\(-[a-zA-Z][ \t]\+\)/\n\1/g' | awk '/^-/ { printf("ARG_%s=\"%s\"\n",gensub(/^-([a-zA-Z]).*$/,"\\1","g",$0),gensub(/^-[a-zA-Z][ \t]+(.*)[ \t]*$/,"\\1","g",$0)) }' | sed 's/""/"EMPTY"/g'
+        echo "$@" | sed 's/[ \t]*\(-[a-zA-Z][ \t]\+\)/\n\1/g' | gawk '/^-/ { printf("ARG_%s=\"%s\"\n",gensub(/^-([a-zA-Z]).*$/,"\\1","g",$0),gensub(/^-[a-zA-Z][ \t]+(.*)[ \t]*$/,"\\1","g",$0)) }' | sed 's/""/"EMPTY"/g'
 }
+
+NEWJDK="$(apt-cache search openjdk | awk '/openjdk-[0-9]+-jdk[ \t]+/ { print $1 }')"
+
+apt-get install -y $NEWJDK unzip gawk curl
 
 eval "$(getargs "$@")"
 
 INSTALLPATH="/opt"
 
 [[ -n "$ARG_p" ]] && INSTALLPATH="$ARG_p"
-
-NEWJDK="$(apt-cache search openjdk | awk '/openjdk-[0-9]+-jdk[ \t]+/ { print $1 }')"
-
-apt-get install -y $NEWJDK unzip gawk curl
 
 echo -n "Downloading sling..."
 curl -s 'https://sling.apache.org/downloads.cgi' | sed 's/>/>\n/g;s/</\n>/g' |\
@@ -44,9 +44,9 @@ done
 echo "done"
 
 echo -n "Setting up sling..."
-pushd .
+pushd . > /dev/null
 cd $INSTALLPATH
-unzip *sling.feature.launcher*zip
+unzip -qq *sling.feature.launcher*zip
 rm *zip
 ln -s $(ls *sling.feature.launcher* -d) sling
 mv *oak_tar_far.far sling
@@ -57,5 +57,5 @@ cat <<HERE > /usr/bin/start_sling
 /opt/sling/bin/launcher -f $OAKTAR
 HERE
 chmod +x /usr/bin/start_sling
-popd
+popd > /dev/null
 echo "done"
