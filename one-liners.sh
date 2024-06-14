@@ -1,3 +1,13 @@
+# Convert integer to a Big Endian integer (max 8 byte-length)
+int2be() {
+	[[ -z "$2" ]] && echo "int2be <number> <byte-len>" || hex="$(bc <<< "ibase=10;obase=16;$1")" ; printf "%u" 0x$hex$([[ $[ ($2 * 2) - ${#hex} ] -gt 0 ]] && printf "%0$[ ($2 * 2) - ${#hex} ]d")
+}
+
+# Convert integer to Little Endian integer
+int2le() {
+	[[ -z "$1" ]] && echo "int2le <number>" || hex="$(bc <<< "ibase=10;obase=16;$1")" ; echo "$[ 16#$([[ $[ ${#hex} % 2 ] -eq 1 ]] && printf "0")$(sed 's/\([A-F0-9]\{2\}\)/\1\n/g' <<< "$hex" | tac | tr -d '\n') ]"
+}
+
 # Send stdin to JetDirect port (9100) on a specified host
 jdprint() {
 	[[ -z "$1" ]] && echo "usage: jdprint <host>" || cat - > /dev/tcp/$1/9100
@@ -114,9 +124,9 @@ taxiisearch() {
 	[[ -z "$1" ]] && echo "usage: taxiisearch <file> <observable>" || sed 's/^[ \t]\+//g' < $1 | tr -d '\n' | xmlpretty | awk 'BEGIN { proc=0 } /<indicator:Observable / { proc = 1 } /<\/indicator:Observable>/ { printf("%s\n",$0); proc = 0 } { if (proc == 1) printf("%s",$0); }' | grep "$(sed 's/^'"$1"'[ \t]\+//g' <<< "$@")" | xmlpretty
 }
 
-# output a file with formatted line numbers
+# output a file with formatted line numbers (provide numeric length of line numbers - padded to the left with zeros)
 linenumbers() {
-	[[ ! -f $1 ]] && echo "usage: linenumbers <file>" || awk -v RC="$(wc -l $1)" '{ printf("%" length(RC) "s: %s\n",NR,$0); }' $1
+	[[ -z "$1" ]] && echo "usage: linenumbers <num-pad-length>" || awk '{ printf("%0'"$1"'d: %s\n",NR,$0); }'
 }
 
 # Lookup name servers for DNS suffixes
