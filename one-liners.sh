@@ -1,3 +1,8 @@
+## Gets audio file information using ffprobe
+audioinfo() {
+	[[ -z "$1" ]] && echo "usage: audioinfo <file>" || ffprobe $@ 2>&1  | awk 'BEGIN { show = 0; } /^Input #0/ { getline; show = 1; } { if (show == 1) { where = match($0,"^[ \t]+"); if (where != 0) { print } else { show = 0 } } }'
+}
+
 # Convert integer to a Big Endian integer (max 8 byte-length)
 int2be() {
 	[[ -z "$2" ]] && echo "int2be <number> <byte-len>" || hex="$(bc <<< "ibase=10;obase=16;$1")" ; printf "%u" 0x$hex$([[ $[ ($2 * 2) - ${#hex} ] -gt 0 ]] && printf "%0$[ ($2 * 2) - ${#hex} ]d")
