@@ -17,8 +17,11 @@
 #
 ##########################
 
+if [ -z "$1" ]; then
+        echo "usage:  deblxc-custom.sh <package> [<package>...]"
+else
+        PACKAGES_LIST="$(sed 's/[ \t]\+/,/g' <<< "$@")"
 
-PACKAGES_LIST="$(sed 's/[ \t]\+/,/g' <<< "$@")"
-
-head -n $[ $(grep -n '^post_process[^(]' /usr/share/lxc/templates/lxc-debian | cut -d':' -f1) - 1 ] /usr/share/lxc/templates/lxc-debian
-tail -n $[ $(wc -l /usr/share/lxc/templates/lxc-debian | cut -d' ' -f1) - $(grep -n '^post_process[^(]' /usr/share/lxc/templates/lxc-debian | cut -d':' -f1) + 1 ] /usr/share/lxc/templates/lxc-debian | sed 's/\(\${packages}\)/\1,'"$PACKAGES_LIST"'/g'
+        head -n $[ $(grep -n '^post_process[^(]' /usr/share/lxc/templates/lxc-debian | cut -d':' -f1) - 1 ] /usr/share/lxc/templates/lxc-debian
+        tail -n $[ $(wc -l /usr/share/lxc/templates/lxc-debian | cut -d' ' -f1) - $(grep -n '^post_process[^(]' /usr/share/lxc/templates/lxc-debian | cut -d':' -f1) + 1 ] /usr/share/lxc/templates/lxc-debian | sed 's/\(\${packages}\)/\1,'"$PACKAGES_LIST"'/g'
+fi
