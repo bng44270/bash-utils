@@ -1,3 +1,8 @@
+# reformat LDAP response un-wrap lines
+fixldapindents() {
+	gawk 'BEGIN { online = 0 } /^[^ \t]+/ { if (online == 1) { printf("\n"); online = 0; } printf("%s",$0); } /^[ \t]+/ { online = 1; printf("%s",gensub(/^[ \t]+(.*)$/,"\\1","g",$0)); }'
+}
+
 ## Gets audio file information using ffprobe
 audioinfo() {
 	[[ -z "$1" ]] && echo "usage: audioinfo <file>" || ffprobe $@ 2>&1  | awk 'BEGIN { show = 0; } /^Input #0/ { getline; show = 1; } { if (show == 1) { where = match($0,"^[ \t]+"); if (where != 0) { print } else { show = 0 } } }'
