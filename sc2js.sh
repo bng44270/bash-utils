@@ -8,17 +8,26 @@
 #
 #############################################################3
 
-if [ -z "$1" ]; then
-	echo "usage:  conv.sh <sc-file>"
+getargs() {
+	echo "$@" | sed 's/[ \t]*\(-[a-zA-Z][ \t]\+\)/\n\1/g' | awk '/^-/ { printf("ARG_%s=\"%s\"\n",gensub(/^-([a-zA-Z]).*$/,"\\1","g",$0),gensub(/^-[a-zA-Z][ \t]+(.*)[ \t]*$/,"\\1","g",$0)) }' | sed 's/""/"EMPTY"/g'
+}
+
+eval $(getargs $@)
+
+if [ -z "$ARG_f" ]; then
+	echo "usage:  conv.sh -f <sc-file> [-l <array-length>]"
+    echo "             default <array-length> is 100"
 	exit 1
 fi
 
-if [ ! -f $1 ]; then
+if [ ! -f $ARG_f ]; then
 	echo "File not found ($1)"
 	exit 1
 fi
 
-grep '^let\|^label\|^leftstring\|^rightstring' $1 | sed 's/^[^ \t]\+[ \t]\+\([A-Z]\+\).*$/\1/g' | sort | uniq | sed 's/^\(.*\)$/var \1 = new Array(200);/g'
+ARLEN="$([[ -z "$ARG_l" ]] && echo "100" || echo "$ARG_l")"
+
+grep '^let\|^label\|^leftstring\|^rightstring' $ARG_f | sed 's/^[^ \t]\+[ \t]\+\([A-Z]\+\).*$/\1/g' | sort | uniq | sed 's/^\(.*\)$/var \1 = new Array('"$ARLEN"');/g'
 
 awk 'function setTextVar(line) {
     R = ""
@@ -57,4 +66,4 @@ function arrayExists(list,char) {
 
 /^rightstring/ { 
     print setTextVar($0);
-}' < $1
+}' < $ARG_f
