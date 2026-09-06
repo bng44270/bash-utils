@@ -46,16 +46,12 @@ fi
 ARLEN="$([[ -z "$ARG_l" ]] && echo "100" || echo "$ARG_l")"
 
 AWK_LIB_SRC='function getCellData(line) {
-    R = ""
 
-    if (!(line ~ /"/) && line ~ /[\+-\/\*\^]/) {
-        R = gensub(/^[^ \t]+[ \t]+([A-Z]+)([0-9]+)(.*)$/,"\\1\\2\\3","g",$0);
+    R = gensub(/^[^ \t]+[ \t]+([A-Z]+)([0-9]+)(.*)$/,"data[\"\\1\"][\\2]\\3","g",line);
+    if (line ~ /"/ || !(line ~ /[\+-\/\*\^]/)) {
+        R = convertRanges(R)
     }
-    else {
-        A = gensub(/^[^ \t]+[ \t]+([A-Z]+)([0-9]+)(.*)$/,"\\1[\\2]\\3","g",$0);
-        R = convertRanges(A)
-    }
-
+    
     return R
 }
 
@@ -152,7 +148,7 @@ AWK_DEF_SRC='/^let/ {
 }'
 
 REPL_CODE='
-    s/\([A-Z]\+\)\([0-9]\+\)/\1[\2]/g;
+    s/\([A-Z]\+\)\([0-9]\+\)/data["\1"][\2]/g;
     s/\^/**/g;
     s/@sqrt/Math.sqrt/g
     s/@exp(\([^)]\+\))/(Math.E**\1)/g;
@@ -175,8 +171,9 @@ const average = (...args) => args.reduce((sum, num) => sum + num, 0) / args.leng
 const sumnums = (...args) => args.reduce((sum, num) => sum + num, 0);
 const product = (...args) => args.reduce((prod, num) => prod * num, 1);
 const stddev = (...points) => Math.sqrt(points.reduce((sum, value) => sum + Math.pow(value - (points.reduce((sum, value) => sum + value, 0) / points.length), 2), 0) / (points.length - 1));
+var data = {};
 HERE
 
-awk "$AWK_LIB_SRC $AWK_DEF_SRC" $ARG_f | sort | uniq | awk -v len="$ARLEN" '{ printf("var %s = new Array(%d);\n",$0,len); }'
+awk "$AWK_LIB_SRC $AWK_DEF_SRC" $ARG_f | sort | uniq | awk -v len="$ARLEN" '{ printf("data[\"%s\"] = new Array(%d);\n",$0,len); }'
 
 awk "$AWK_LIB_SRC $AWK_DATA_SRC" $ARG_f | sort | sed "$REPL_CODE"
