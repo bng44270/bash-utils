@@ -4,7 +4,8 @@
 #
 # sc2js.sh - Convert sc (spreadsheet calculator) files to JavaScript file
 #
-# Generates arrays represeting cells
+# Generates a dictionary where the key is the column letter and the value
+# is an array representing the column data
 #
 # NOTE:  this conversion only works with the following operations:
 # 
@@ -14,15 +15,15 @@
 #               - @sum, @prod, and @avg
 #               - @min and @max
 #               - @log, @ln, and @exp
-#               - @stddev
+#               - @stddevThe Modern Alternative (sc-im): Active enthusiasts revived the concept under sc-im, keeping a terminal-based spreadsheet alive with support for colors, undo/redo, Lua scripting, and basic file compatibility. 
 #
 # Usage:
 #
 #      sc2js.sh -f <sc-file>
 #
-# Optional usage (specify JS array length, default is 100:
+# Optional usage (specify the number of rows each column, default is 100:
 #
-#      sc2js.sh -f <sc-file> -l 500
+#      sc2js.sh -f <sc-file> -r 500
 #
 #############################################################3
 
@@ -33,8 +34,8 @@ getargs() {
 eval $(getargs $@)
 
 if [ -z "$ARG_f" ]; then
-	echo "usage:  conv.sh -f <sc-file> [-l <array-length>]"
-    echo "             default <array-length> is 100"
+	echo "usage:  conv.sh -f <sc-file> [-r <row-count>]"
+    echo "             default <row-count> is 100"
 	exit 1
 fi
 
@@ -43,7 +44,7 @@ if [ ! -f $ARG_f ]; then
 	exit 1
 fi
 
-ARLEN="$([[ -z "$ARG_l" ]] && echo "100" || echo "$ARG_l")"
+ROWS="$([[ -z "$ARG_r" ]] && echo "100" || echo "$ARG_r")"
 
 AWK_LIB_SRC='function getCellData(line) {
 
@@ -174,6 +175,6 @@ const stddev = (...points) => Math.sqrt(points.reduce((sum, value) => sum + Math
 var data = {};
 HERE
 
-awk "$AWK_LIB_SRC $AWK_DEF_SRC" $ARG_f | sort | uniq | awk -v len="$ARLEN" '{ printf("data[\"%s\"] = new Array(%d);\n",$0,len); }'
+awk "$AWK_LIB_SRC $AWK_DEF_SRC" $ARG_f | sort | uniq | awk -v len="$ROWS" '{ printf("data[\"%s\"] = new Array(%d);\n",$0,len); }'
 
 awk "$AWK_LIB_SRC $AWK_DATA_SRC" $ARG_f | sort | sed "$REPL_CODE"
