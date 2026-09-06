@@ -40,7 +40,7 @@ if [ ! -f $ARG_f ]; then
 	exit 1
 fi
 
-AWK_LIB_SRC='
+AWK_DATA_SRC='
 function getCellData(line) {
 
     R = gensub(/^[^ \t]+[ \t]+([A-Z]+)([0-9]+)(.*)$/,"data[\"\\1\"][\\2]\\3","g",line);
@@ -107,62 +107,25 @@ function convertRanges(A) {
     return CELLS;
 }
 
-function getUsedColumns(line) {
-    return gensub(/^[^ \t]+[ \t]+([A-Z]+).*$/,"\\1","g",$0);
-}
-
-function getUsedRows(line) {
-    return gensub(/^[^ \t]+[ \t]+[A-Z]+([0-9]+).*$/,"\\1","g",$0);
-}'
-
-AWK_DATA_SRC='
-/^let/ {
-    print getCellData($0);
-}
-
-/^label/ { 
-    print getCellData($0);
-}
-
-/^leftstring/ { 
-    print getCellData($0);
-}
-
-/^rightstring/ { 
+/^let|^label|^leftstring|^rightstring/ { 
     print getCellData($0);
 }'
 
 AWK_COLUMN_SRC='
-/^let/ {
-    print getUsedColumns($0);
+function getUsedColumns(line) {
+    return gensub(/^[^ \t]+[ \t]+([A-Z]+).*$/,"\\1","g",$0);
 }
 
-/^label/ { 
-    print getUsedColumns($0);
-}
-
-/^leftstring/ { 
-    print getUsedColumns($0);
-}
-
-/^rightstring/ { 
+/^let|^label|^leftstring|^rightstring/ { 
     print getUsedColumns($0);
 }'
 
 AWK_ROW_SRC='
-/^let/ {
-    print getUsedRows($0);
+function getUsedRows(line) {
+    return gensub(/^[^ \t]+[ \t]+[A-Z]+([0-9]+).*$/,"\\1","g",$0);
 }
 
-/^label/ { 
-    print getUsedRows($0);
-}
-
-/^leftstring/ { 
-    print getUsedRows($0);
-}
-
-/^rightstring/ { 
+/^let|^label|^leftstring|^rightstring/ { 
     print getUsedRows($0);
 }'
 
@@ -194,8 +157,8 @@ var data = {};
 HERE
 
 
-ROWS="$[ $(awk "$AWK_LIB_SRC $AWK_ROW_SRC" $ARG_f | sort -nr | head -n1) + 1 ]"
+ROWS="$[ $(awk "$AWK_ROW_SRC" $ARG_f | sort -nr | head -n1) + 1 ]"
 
-awk "$AWK_LIB_SRC $AWK_COLUMN_SRC" $ARG_f | sort | uniq | awk -v len="$ROWS" '{ printf("data[\"%s\"] = new Array(%d);\n",$0,len); }'
+awk "$AWK_COLUMN_SRC" $ARG_f | sort | uniq | awk -v len="$ROWS" '{ printf("data[\"%s\"] = new Array(%d);\n",$0,len); }'
 
-awk "$AWK_LIB_SRC $AWK_DATA_SRC" $ARG_f | sort | sed "$REPL_CODE"
+awk "$AWK_DATA_SRC" $ARG_f | sort | sed "$REPL_CODE"
