@@ -1,5 +1,13 @@
 #!/bin/bash
 
+#############################################################3
+#
+# sc2js.sh - Convert sc (spreadsheet calculator) files to JavaScript file
+#
+# Generates arrays represeting cells
+#
+#############################################################3
+
 if [ -z "$1" ]; then
 	echo "usage:  conv.sh <sc-file>"
 	exit 1
