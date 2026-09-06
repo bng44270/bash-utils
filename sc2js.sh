@@ -45,7 +45,7 @@ fi
 
 ARLEN="$([[ -z "$ARG_l" ]] && echo "100" || echo "$ARG_l")"
 
-AWK_LIB_SRC='function setTextVar(line) {
+AWK_LIB_SRC='function getCellData(line) {
     R = ""
 
     if (!(line ~ /"/) && line ~ /[\+-\/\*\^]/) {
@@ -120,19 +120,19 @@ function getArName(line) {
 }'
 
 AWK_DATA_SRC='/^let/ {
-    print setTextVar($0);
+    print getCellData($0);
 }
 
 /^label/ { 
-    print setTextVar($0);
+    print getCellData($0);
 }
 
 /^leftstring/ { 
-    print setTextVar($0);
+    print getCellData($0);
 }
 
 /^rightstring/ { 
-    print setTextVar($0);
+    print getCellData($0);
 }'
 
 AWK_DEF_SRC='/^let/ {
