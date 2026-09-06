@@ -21,10 +21,6 @@
 #
 #      sc2js.sh -f <sc-file>
 #
-# Optional usage (specify the number of rows each column, default is 100:
-#
-#      sc2js.sh -f <sc-file> -r 500
-#
 #############################################################3
 
 getargs() {
@@ -44,9 +40,8 @@ if [ ! -f $ARG_f ]; then
 	exit 1
 fi
 
-ROWS="$([[ -z "$ARG_r" ]] && echo "100" || echo "$ARG_r")"
-
-AWK_LIB_SRC='function getCellData(line) {
+AWK_LIB_SRC='
+function getCellData(line) {
 
     R = gensub(/^[^ \t]+[ \t]+([A-Z]+)([0-9]+)(.*)$/,"data[\"\\1\"][\\2]\\3","g",line);
     if (line ~ /"/ || !(line ~ /[\+-\/\*\^]/)) {
@@ -114,9 +109,14 @@ function convertRanges(A) {
 
 function getUsedColumns(line) {
     return gensub(/^[^ \t]+[ \t]+([A-Z]+).*$/,"\\1","g",$0);
+}
+
+function getUsedRows(line) {
+    return gensub(/^[^ \t]+[ \t]+[A-Z]+([0-9]+).*$/,"\\1","g",$0);
 }'
 
-AWK_DATA_SRC='/^let/ {
+AWK_DATA_SRC='
+/^let/ {
     print getCellData($0);
 }
 
@@ -132,7 +132,8 @@ AWK_DATA_SRC='/^let/ {
     print getCellData($0);
 }'
 
-AWK_DEF_SRC='/^let/ {
+AWK_COLUMN_SRC='
+/^let/ {
     print getUsedColumns($0);
 }
 
@@ -146,6 +147,23 @@ AWK_DEF_SRC='/^let/ {
 
 /^rightstring/ { 
     print getUsedColumns($0);
+}'
+
+AWK_ROW_SRC='
+/^let/ {
+    print getUsedRows($0);
+}
+
+/^label/ { 
+    print getUsedRows($0);
+}
+
+/^leftstring/ { 
+    print getUsedRows($0);
+}
+
+/^rightstring/ { 
+    print getUsedRows($0);
 }'
 
 REPL_CODE='
@@ -175,6 +193,9 @@ const stddev = (...points) => Math.sqrt(points.reduce((sum, value) => sum + Math
 var data = {};
 HERE
 
-awk "$AWK_LIB_SRC $AWK_DEF_SRC" $ARG_f | sort | uniq | awk -v len="$ROWS" '{ printf("data[\"%s\"] = new Array(%d);\n",$0,len); }'
+
+ROWS="$[ $(awk "$AWK_LIB_SRC $AWK_ROW_SRC" $ARG_f | sort -nr | head -n1) + 1 ]"
+
+awk "$AWK_LIB_SRC $AWK_COLUMN_SRC" $ARG_f | sort | uniq | awk -v len="$ROWS" '{ printf("data[\"%s\"] = new Array(%d);\n",$0,len); }'
 
 awk "$AWK_LIB_SRC $AWK_DATA_SRC" $ARG_f | sort | sed "$REPL_CODE"
