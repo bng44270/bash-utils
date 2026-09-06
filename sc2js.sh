@@ -6,6 +6,15 @@
 #
 # Generates arrays represeting cells
 #
+# NOTE:  this conversion only works with the following operations:
+# 
+#          - Basic Math (addition, subtraction, multiplication, and division
+#          - Exponents (caret operator)
+#          - SC Functions:
+#               - @sum, @prod, and @avg
+#               - @min and @max
+#               - @log, @ln, and @exp
+#
 # Usage:
 #
 #      sc2js.sh -f <sc-file>
@@ -35,32 +44,81 @@ fi
 
 ARLEN="$([[ -z "$ARG_l" ]] && echo "100" || echo "$ARG_l")"
 
-grep '^let\|^label\|^leftstring\|^rightstring' $ARG_f | sed 's/^[^ \t]\+[ \t]\+\([A-Z]\+\).*$/\1/g' | sort | uniq | sed 's/^\(.*\)$/var \1 = new Array('"$ARLEN"');/g'
-
-awk 'function setTextVar(line) {
+AWK_LIB_SRC='function setTextVar(line) {
     R = ""
 
-    if (!index(line,"\"") && (line ~ /[\+-\/\*]/)) {
-        A = gensub(/^[^ \t]+[ \t]+([A-Z]+)([0-9]+)(.*)$/,"\\1\\2\\3","g",$0);
-        R = gensub(/([A-Z]+)([0-9]+)/,"\\1[\\2]","g",A)
+    if (!(line ~ /"/) && line ~ /[\+-\/\*\^]/) {
+        R = gensub(/^[^ \t]+[ \t]+([A-Z]+)([0-9]+)(.*)$/,"\\1\\2\\3","g",$0);
     }
     else {
-        R = gensub(/^[^ \t]+[ \t]+([A-Z]+)([0-9]+)(.*)$/,"\\1[\\2]\\3","g",$0);
+        A = gensub(/^[^ \t]+[ \t]+([A-Z]+)([0-9]+)(.*)$/,"\\1[\\2]\\3","g",$0);
+        R = convertRanges(A)
     }
 
     return R
 }
 
+function convertRanges(A) {
+    CELLS = "";
+
+    for (i = 1; i <= 26; i++) {
+        ALPHA[i] = sprintf("%c",i+64);
+    }
+
+    if (A ~ /[A-Z]+[0-9]+:[A-Z]+[0-9]+/) {
+        RAN = gensub(/^.*([A-Z]+)([0-9]+):([A-Z]+)([0-9]+).*$/,"\\1-\\2-\\3-\\4","g",A);
+        count = split(RAN,rangenums,"-");
+        LOWCOL = rangenums[1];
+        HICOL = rangenums[3];
+        LOWROW = rangenums[2] + 0;
+        HIROW = rangenums[4] + 0;
+
+        GOING = 0;
+
+        if (LOWCOL == HICOL) {
+            for (r = LOWROW; r <= HIROW; r++) {
+                CELLS = CELLS LOWCOL r ",";
+            }
+        }
+        else {
+            for (i = 1; i <=26; i++) {
+                if (LOWCOL == ALPHA[i]) {
+                    GOING = 1;
+                    for (r = LOWROW; r <= HIROW; r++) {
+                        CELLS = CELLS ALPHA[i] r ",";
+                    }
+                    continue
+                }
+
+                if (HICOL == ALPHA[i]) {
+                    for (r = LOWROW; r <= HIROW; r++) {
+                        CELLS = CELLS ALPHA[i] r ",";
+                    }
+                    break
+                }
+
+                if (GOING == 1) {
+                    for (r = LOWROW; r <= HIROW; r++) {
+                        CELLS = CELLS ALPHA[i] r ",";
+                    }
+                }
+            }
+        }
+
+        CELLS = gensub(/^(.*)[A-Z]+[0-9]+:[A-Z]+[0-9]+(.*)$/,"\\1" CELLS "\b \b" "\\2","g",A);
+    }
+    else {
+        CELLS = A;
+    }
+
+    return CELLS;
+}
+
 function getArName(line) {
     return gensub(/^[^ \t]+[ \t]+([A-Z]+).*$/,"\\1","g",$0);
-}
+}'
 
-function arrayExists(list,char) {
-    count = split(list,letters,"")
-    return index(list,letters[count])
-}
-
-/^let/ {
+AWK_DATA_SRC='/^let/ {
     print setTextVar($0);
 }
 
@@ -74,4 +132,50 @@ function arrayExists(list,char) {
 
 /^rightstring/ { 
     print setTextVar($0);
-}' < $ARG_f
+}'
+
+AWK_DEF_SRC='/^let/ {
+    print getArName($0);
+}
+
+/^label/ { 
+    print getArName($0);
+}
+
+/^leftstring/ { 
+    print getArName($0);
+}
+
+/^rightstring/ { 
+    print getArName($0);
+}'
+
+REPL_CODE='
+    s/\([A-Z]\+\)\([0-9]\+\)/\1[\2]/g;
+    s/\^/**/g;
+    s/@sqrt/Math.sqrt/g
+    s/@exp(\([^)]\+\))/(Math.E**\1)/g;
+    s/@log/Math.log/g;
+    s/@ln(\([^)]\+\))/(Math.log(\1)\/Math.log(Math.E))/g;
+    s/@min/Math.min/g;
+    s/@max/Math.max/g;
+    s/@avg/average/g;
+    s/@sum/sumnums/g;
+    s/@prod/product/g;
+    s/@stddev/stddev/g
+'
+
+cat <<HERE
+/*
+    Be sure to copy all of the lines
+    including the constants defined below
+*/
+const average = (...args) => args.reduce((sum, num) => sum + num, 0) / args.length;
+const sumnums = (...args) => args.reduce((sum, num) => sum + num, 0);
+const product = (...args) => args.reduce((prod, num) => prod * num, 1);
+const stddev = (...points) => Math.sqrt(points.reduce((sum, value) => sum + Math.pow(value - (points.reduce((sum, value) => sum + value, 0) / points.length), 2), 0) / (points.length - 1));
+HERE
+
+awk "$AWK_LIB_SRC $AWK_DEF_SRC" $ARG_f | sort | uniq | awk -v len="$ARLEN" '{ printf("var %s = new Array(%d);\n",$0,len); }'
+
+awk "$AWK_LIB_SRC $AWK_DATA_SRC" $ARG_f | sort | sed "$REPL_CODE"
