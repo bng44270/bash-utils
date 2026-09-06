@@ -6,6 +6,14 @@
 #
 # Generates arrays represeting cells
 #
+# Usage:
+#
+#      sc2js.sh -f <sc-file>
+#
+# Optional usage (specify JS array length, default is 100:
+#
+#      sc2js.sh -f <sc-file> -l 500
+#
 #############################################################3
 
 getargs() {
