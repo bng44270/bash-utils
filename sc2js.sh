@@ -112,7 +112,7 @@ function convertRanges(A) {
     return CELLS;
 }
 
-function getArName(line) {
+function getUsedColumns(line) {
     return gensub(/^[^ \t]+[ \t]+([A-Z]+).*$/,"\\1","g",$0);
 }'
 
@@ -133,19 +133,19 @@ AWK_DATA_SRC='/^let/ {
 }'
 
 AWK_DEF_SRC='/^let/ {
-    print getArName($0);
+    print getUsedColumns($0);
 }
 
 /^label/ { 
-    print getArName($0);
+    print getUsedColumns($0);
 }
 
 /^leftstring/ { 
-    print getArName($0);
+    print getUsedColumns($0);
 }
 
 /^rightstring/ { 
-    print getArName($0);
+    print getUsedColumns($0);
 }'
 
 REPL_CODE='
