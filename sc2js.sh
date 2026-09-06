@@ -29,7 +29,7 @@ if [ -z "$ARG_f" ]; then
 fi
 
 if [ ! -f $ARG_f ]; then
-	echo "File not found ($1)"
+	echo "File not found ($ARG_f)"
 	exit 1
 fi
 
