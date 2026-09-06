@@ -14,6 +14,7 @@
 #               - @sum, @prod, and @avg
 #               - @min and @max
 #               - @log, @ln, and @exp
+#               - @stddev
 #
 # Usage:
 #
